@@ -1,25 +1,39 @@
-pipeline {
+pipeline{
     agent any
-    stages {
-        stage('Build') {
-            steps {
-                sh 'mvn -B -DskipTests clean package'
+    stages{
+        stage("Clean Up"){
+            steps{
+                deleteDir()
             }
         }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
+        stage("Clone Repo"){
+            steps{
+                sh "git clone https://github.com/shahsamarth46/simple-java-maven-app.git"
             }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+        }
+        stage("Build"){
+            steps{
+                dir("simple-java-maven-app"){
+                sh '''
+                    export JAVA_HOME=/usr/local/opt/openjdk@17
+                    export PATH=$JAVA_HOME/bin:$PATH
+                    /usr/local/Cellar/maven/3.9.9/libexec/bin/mvn clean install
+                '''
                 }
             }
         }
-        stage('Deliver') {
-            steps {
-                sh './jenkins/scripts/deliver.sh'
+        stage("Test"){
+            steps{
+                dir("simple-java-maven-app"){
+                    sh '''
+                    export JAVA_HOME=/usr/local/opt/openjdk@17
+                    export PATH=$JAVA_HOME/bin:$PATH
+                    /usr/local/Cellar/maven/3.9.9/libexec/bin/mvn test
+                '''
+                }
             }
         }
+
     }
 }
+
